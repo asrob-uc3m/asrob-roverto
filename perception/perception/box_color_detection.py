@@ -54,29 +54,38 @@ class BoxColorDetector(Node):
 
         # Creating contour to track red color
         contours, hierarchy = cv2.findContours(red_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        contour = max(contours, key = cv2.contourArea)
-
-        x, y, w, h = cv2.boundingRect(contour)
-        imageFrame = cv2.rectangle(imageFrame, (x, y),
-                                (x + w, y + h),
-                                (0, 0, 255), 2)
-
-        cv2.putText(imageFrame, "Red Colour", (x, y),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1.0,
-                    (0, 0, 255))
+        area_red = 0
+        if contours:
+            contour_red = max(contours, key = cv2.contourArea)
+            area_red = cv2.contourArea(contour_red)
 
         # Creating contour to track blue color
         contours, hierarchy = cv2.findContours(blue_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        contour = max(contours, key = cv2.contourArea)
+        area_blue = 0
+        if contours:
+            contour_blue = max(contours, key = cv2.contourArea)
+            area_blue = cv2.contourArea(contour_blue)
 
-        x, y, w, h = cv2.boundingRect(contour)
-        imageFrame = cv2.rectangle(imageFrame, (x, y),
-                                (x + w, y + h),
-                                (255, 0, 0), 2)
+        # Paint biggest area (none if equal)
+        if area_red > area_blue:
+            x, y, w, h = cv2.boundingRect(contour_red)
+            imageFrame = cv2.rectangle(imageFrame, (x, y),
+                                    (x + w, y + h),
+                                    (0, 0, 255), 2)
 
-        cv2.putText(imageFrame, "Blue Colour", (x, y),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    1.0, (255, 0, 0))
+            cv2.putText(imageFrame, "Red Colour", (x, y),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.0,
+                        (0, 0, 255))
+
+        if area_blue > area_red:
+            x, y, w, h = cv2.boundingRect(contour_blue)
+            imageFrame = cv2.rectangle(imageFrame, (x, y),
+                                    (x + w, y + h),
+                                    (255, 0, 0), 2)
+
+            cv2.putText(imageFrame, "Blue Colour", (x, y),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        1.0, (255, 0, 0))
 
         # final run
         cv2.imshow("Color Detection", imageFrame)
