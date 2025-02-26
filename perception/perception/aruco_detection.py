@@ -59,7 +59,7 @@ class ArucoDetector(Node):
         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
         cv_image = imutils.resize(cv_image, width=600)
 
-        aruco_dict = cv2.aruco.getPredefinedDictionary(ARUCO_DICT["DICT_ARUCO_ORIGINAL"])
+        aruco_dict = cv2.aruco.getPredefinedDictionary(ARUCO_DICT["DICT_5x5_50"])
         aruco_params = cv2.aruco.DetectorParameters()
         detector = cv2.aruco.ArucoDetector(aruco_dict, aruco_params)
 
@@ -89,8 +89,8 @@ class ArucoDetector(Node):
             # Distance
             rvec , tvec, _ = cv2.aruco.estimatePoseSingleMarkers(markerCorner, self.marker_length, self.camera_matrix, self.dist_coeffs)
             tvec = tvec[0][0]
-            front_distance = tvec[2] * 0.367 + 0.25
-            cv2.putText(cv_image, f"Distance: {front_distance}", (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255))
+            front_distance = tvec[2] * 0.366
+            cv2.putText(cv_image, f"Distance: {round(front_distance, 3)}", (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255))
 
         # show the output image
         cv2.imshow("Aruco Detection", cv_image)
