@@ -33,28 +33,11 @@ class NumberDetector(Node):
         cv_image = imutils.resize(cv_image, width=640)
 
         # Perform object detection
-        results = self.yolo_model(cv_image)
+        results = self.yolo_model(cv_image, show=True, conf=0.8)
 
-        # Loop through the detections and draw bounding boxes
-        for r in results:
-            boxes = r.boxes
-            for box in boxes:
-                x1, y1, x2, y2 = box.xyxy[0]
-                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-
-                w, h = x2 - x1, y2 - y1
-                
-                conf = math.ceil((box.conf[0] * 100)) / 100
-                cls = int(box.cls[0])
-
-                if conf > 0.8:
-                    cvzone.cornerRect(cv_image, (x1, y1, w, h), t=2)
-                    cvzone.putTextRect(cv_image, f'{self.class_labels[cls]} {conf}', (x1, y1 - 10), scale=0.8, thickness=1, colorR=(255, 0, 0))
-
-        # show image
-        cv2.imshow("Number Detection", cv_image)
-        if cv2.waitKey(10) & 0xFF == ord('q'):
-            cv2.destroyAllWindows()
+        # Print results
+        if results:
+            print(f'Found number {results[0].boxes.cls[0]} with confidence {results[0].boxes.conf[0]}')
 
 
 def main():
