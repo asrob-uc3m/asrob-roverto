@@ -37,7 +37,10 @@ class NumberDetector(Node):
 
         # Print results
         if results:
-            print(f'Found number {results[0].boxes.cls[0]} with confidence {results[0].boxes.conf[0]}')
+            if results[0].boxes.conf[0] > 0.8:
+                print(f'Found number {results[0].boxes.cls[0]} with confidence {results[0].boxes.conf[0]}')
+            else:
+                print('No numbers found with enough confidence')
 
 
 def main():
