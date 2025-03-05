@@ -66,8 +66,14 @@ class BoxColorDetector(Node):
             contour_blue = max(contours, key = cv2.contourArea)
             area_blue = cv2.contourArea(contour_blue)
 
-        # Paint biggest area (none if equal)
-        if area_red > area_blue:
+        # Paint biggest area (none if too little)
+        # print(f'Found RED with area {area_red} and BLUE with area {area_blue}')
+        thres = 20000
+        if area_red < thres and area_blue < thres:
+            print('NO BLUE OR RED DETECTED')
+
+        elif area_red > area_blue:
+            print('FOUND RED AREA')
             x, y, w, h = cv2.boundingRect(contour_red)
             imageFrame = cv2.rectangle(imageFrame, (x, y),
                                     (x + w, y + h),
@@ -77,7 +83,8 @@ class BoxColorDetector(Node):
                         cv2.FONT_HERSHEY_SIMPLEX, 1.0,
                         (0, 0, 255))
 
-        if area_blue > area_red:
+        else:
+            print('FOUND BLUE AREA')
             x, y, w, h = cv2.boundingRect(contour_blue)
             imageFrame = cv2.rectangle(imageFrame, (x, y),
                                     (x + w, y + h),
