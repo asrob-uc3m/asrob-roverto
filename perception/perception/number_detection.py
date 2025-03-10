@@ -23,7 +23,7 @@ class NumberDetector(Node):
         self.subscription
 
         # Load YOLO model with custom weights
-        self.yolo_model = YOLO("models/number_detection.pt")
+        self.yolo_model = YOLO("models/digits_profile-5.pt")
         self.class_labels = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
         
     def camera_callback(self, msg):
