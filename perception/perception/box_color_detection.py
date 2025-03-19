@@ -6,17 +6,23 @@ import cv2
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
+from std_msgs.msg import String
 
 
 class BoxColorDetector(Node):
     def __init__(self):
         super().__init__('box_color_node')
         self.bridge = CvBridge()
+
+        # Subscriber
         self.subscription = self.create_subscription(Image, 
                                                      '/AstraProPlus/color/image_raw',
                                                      self.camera_callback, 
                                                      10)
         self.subscription
+
+        # Publisher
+        self.publisher_ = self.create_publisher(String, 'box_color_topic', 1)
         
     def camera_callback(self, msg):
         # from https://agneya.medium.com/color-detection-using-python-and-opencv-8305c29d4a42
@@ -70,34 +76,46 @@ class BoxColorDetector(Node):
         # print(f'Found RED with area {area_red} and BLUE with area {area_blue}')
         thres = 20000
         if area_red < thres and area_blue < thres:
-            print('NO BLUE OR RED DETECTED')
+            msg = String()
+            msg.data = 'none'
+            self.publisher_.publish(msg)
+
+            # print('NO BLUE OR RED DETECTED')
 
         elif area_red > area_blue:
-            print('FOUND RED AREA')
-            x, y, w, h = cv2.boundingRect(contour_red)
-            imageFrame = cv2.rectangle(imageFrame, (x, y),
-                                    (x + w, y + h),
-                                    (0, 0, 255), 2)
+            msg = String()
+            msg.data = 'red'
+            self.publisher_.publish(msg)
 
-            cv2.putText(imageFrame, "Red Colour", (x, y),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1.0,
-                        (0, 0, 255))
+            # print('FOUND RED AREA')
+            # x, y, w, h = cv2.boundingRect(contour_red)
+            # imageFrame = cv2.rectangle(imageFrame, (x, y),
+            #                         (x + w, y + h),
+            #                         (0, 0, 255), 2)
+
+            # cv2.putText(imageFrame, "Red Colour", (x, y),
+            #             cv2.FONT_HERSHEY_SIMPLEX, 1.0,
+            #             (0, 0, 255))
 
         else:
-            print('FOUND BLUE AREA')
-            x, y, w, h = cv2.boundingRect(contour_blue)
-            imageFrame = cv2.rectangle(imageFrame, (x, y),
-                                    (x + w, y + h),
-                                    (255, 0, 0), 2)
+            msg = String()
+            msg.data = 'red'
+            self.publisher_.publish(msg)
 
-            cv2.putText(imageFrame, "Blue Colour", (x, y),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        1.0, (255, 0, 0))
+            # print('FOUND BLUE AREA')
+            # x, y, w, h = cv2.boundingRect(contour_blue)
+            # imageFrame = cv2.rectangle(imageFrame, (x, y),
+            #                         (x + w, y + h),
+            #                         (255, 0, 0), 2)
+
+            # cv2.putText(imageFrame, "Blue Colour", (x, y),
+            #             cv2.FONT_HERSHEY_SIMPLEX,
+            #             1.0, (255, 0, 0))
 
         # final run
-        cv2.imshow("Color Detection", imageFrame)
-        if cv2.waitKey(10) & 0xFF == ord('q'):
-            cv2.destroyAllWindows()
+        # cv2.imshow("Color Detection", imageFrame)
+        # if cv2.waitKey(10) & 0xFF == ord('q'):
+        #     cv2.destroyAllWindows()
 
 
 def main():

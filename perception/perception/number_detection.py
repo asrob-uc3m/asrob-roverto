@@ -10,17 +10,23 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from ultralytics import YOLO
+from std_msgs.msg import String
 
 
 class NumberDetector(Node):
     def __init__(self):
         super().__init__('box_color_node')
         self.bridge = CvBridge()
+
+        # Subscriber
         self.subscription = self.create_subscription(Image, 
                                                      '/AstraProPlus/color/image_raw',
                                                      self.camera_callback, 
                                                      10)
         self.subscription
+
+        # Publisher
+        self.publisher_ = self.create_publisher(String, 'number_topic', 1)
 
         # Load YOLO model with custom weights
         self.yolo_model = YOLO("models/digits_profile-5.pt")
@@ -33,14 +39,21 @@ class NumberDetector(Node):
         cv_image = imutils.resize(cv_image, width=640)
 
         # Perform object detection
-        results = self.yolo_model(cv_image, show=True, conf=0.8)
+        # results = self.yolo_model(cv_image, show=True, conf=0.8)
+        results = self.yolo_model(cv_image, show=False, conf=0.8)
 
         # Print results
+        msg = String()
+        msg.data = 'none'
+
         if results:
             if results[0].boxes.conf[0] > 0.8:
                 print(f'Found number {results[0].boxes.cls[0]} with confidence {results[0].boxes.conf[0]}')
+                msg.data = results[0].boxes.cls[0]
             else:
                 print('No numbers found with enough confidence')
+
+        self.publisher_.publish(msg)
 
 
 def main():
