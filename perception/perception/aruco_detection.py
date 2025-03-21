@@ -81,34 +81,20 @@ class ArucoDetector(Node):
                 bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
                 topLeft = (int(topLeft[0]), int(topLeft[1]))
 
-                # draw the bounding box of the ArUCo detection
-                # cv2.line(cv_image, topLeft, topRight, (0, 255, 0), 2)
-                # cv2.line(cv_image, topRight, bottomRight, (0, 255, 0), 2)
-                # cv2.line(cv_image, bottomRight, bottomLeft, (0, 255, 0), 2)
-                # cv2.line(cv_image, bottomLeft, topLeft, (0, 255, 0), 2)
-
                 # compute and draw the center (x, y)-coordinates of the ArUco
                 cX = int((topLeft[0] + bottomRight[0]) / 2.0)
                 cY = int((topLeft[1] + bottomRight[1]) / 2.0)
-                # cv2.circle(cv_image, (cX, cY), 4, (0, 0, 255), -1)
-                # cv2.putText(cv_image, f"ID: {markerId}", (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0))
 
                 # Distance
                 rvec , tvec, _ = cv2.aruco.estimatePoseSingleMarkers(markerCorner, self.marker_length, self.camera_matrix, self.dist_coeffs)
                 tvec = tvec[0][0]
                 front_distance = tvec[2] * 0.366
-                # cv2.putText(cv_image, f"Distance: {round(front_distance, 3)}", (cX, cY+25), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255))
 
                 # Publish
                 msg = Aruco()
                 msg.distance = front_distance
                 msg.id = markerId
                 self.publisher_.publish(msg)
-
-        # show the output image
-        # cv2.imshow("Aruco Detection", cv_image)
-        # if cv2.waitKey(10) & 0xFF == ord('q'):
-        #     cv2.destroyAllWindows()
 
 
 def main():

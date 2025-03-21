@@ -20,9 +20,11 @@ class BoxColorDetector(Node):
                                                      self.camera_callback, 
                                                      10)
         self.subscription
+        self.get_logger().info('BoxColor subscriber is UP')
 
         # Publisher
         self.publisher_ = self.create_publisher(String, 'box_color_topic', 1)
+        self.get_logger().info('BoxColor publisher is UP')
         
     def camera_callback(self, msg):
         # from https://agneya.medium.com/color-detection-using-python-and-opencv-8305c29d4a42
@@ -73,7 +75,6 @@ class BoxColorDetector(Node):
             area_blue = cv2.contourArea(contour_blue)
 
         # Paint biggest area (none if too little)
-        # print(f'Found RED with area {area_red} and BLUE with area {area_blue}')
         thres = 20000
         if area_red < thres and area_blue < thres:
             msg = String()
@@ -87,35 +88,10 @@ class BoxColorDetector(Node):
             msg.data = 'red'
             self.publisher_.publish(msg)
 
-            # print('FOUND RED AREA')
-            # x, y, w, h = cv2.boundingRect(contour_red)
-            # imageFrame = cv2.rectangle(imageFrame, (x, y),
-            #                         (x + w, y + h),
-            #                         (0, 0, 255), 2)
-
-            # cv2.putText(imageFrame, "Red Colour", (x, y),
-            #             cv2.FONT_HERSHEY_SIMPLEX, 1.0,
-            #             (0, 0, 255))
-
         else:
             msg = String()
             msg.data = 'red'
             self.publisher_.publish(msg)
-
-            # print('FOUND BLUE AREA')
-            # x, y, w, h = cv2.boundingRect(contour_blue)
-            # imageFrame = cv2.rectangle(imageFrame, (x, y),
-            #                         (x + w, y + h),
-            #                         (255, 0, 0), 2)
-
-            # cv2.putText(imageFrame, "Blue Colour", (x, y),
-            #             cv2.FONT_HERSHEY_SIMPLEX,
-            #             1.0, (255, 0, 0))
-
-        # final run
-        # cv2.imshow("Color Detection", imageFrame)
-        # if cv2.waitKey(10) & 0xFF == ord('q'):
-        #     cv2.destroyAllWindows()
 
 
 def main():

@@ -12,7 +12,6 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from ultralytics import YOLO
 from std_msgs.msg import String
-from custom_msg.msg import Aruco
 from geometry_msgs.msg import Twist
 
 
@@ -24,17 +23,18 @@ class PerceptionSpin(Node):
 
         # Subscriber
         self.subscription = self.create_subscription(String,
-                                                     'number_topic',
+                                                     '/perception/number_topic',
                                                      self.number_callback, 
                                                      1)
         self.subscription = self.create_subscription(String,
-                                                     'box_color_topic',
+                                                     '/perception/box_color_topic',
                                                      self.color_callback, 
                                                      1)                                 
         self.subscription
+        self.get_logger().info('PerceptionSpin subscribers are UP')
 
         # Publisher
-        self.cmd_vel_pub = self.create_publisher(Twist, "/cmd_vel", 10)
+        # self.cmd_vel_pub = self.create_publisher(Twist, "/cmd_vel", 10)
 
         # Detection
         self.class_labels = {'uno': 1, 'dos': 2, 'tres': 3, 'cuatro': 4, 'cinco': 5, 'seis': 6, 'siete': 7, 'ocho': 8, 'nueve': 9}
@@ -46,6 +46,7 @@ class PerceptionSpin(Node):
 
     def number_callback(self, msg):
         number_name = msg.data
+        self.get_logger().info(f'Got {number_name}')
         
         if number_name in self.class_labels.keys():
             self.number = self.class_labels[number_name]
@@ -56,6 +57,7 @@ class PerceptionSpin(Node):
 
     def color_callback(self, msg):
         color_name = msg.data
+        self.get_logger().info(f'Got {color_name}')
 
         if color_name != 'none':
             self.color = color_name
@@ -65,23 +67,26 @@ class PerceptionSpin(Node):
             self.color = None
 
     def spin(self):
-        twist = Twist()
+        self.get_logger().info(f'Got {self.number} and {self.color}')
+        # twist = Twist()
         if self.color == 'red':
-            twist.angular.y = self.spin_rate
+            self.get_logger().info(f'Spinning {self.number} times to the right')
+            # twist.angular.y = self.spin_rate
         elif self.color == 'blue':
-            twist.angular.y = -self.spin_rate
+            self.get_logger().info(f'Spinning {self.number} times to the left')
+            # twist.angular.y = -self.spin_rate
 
-        spinning_time = 1.8 * math.pi * self.number / self.spin_rate
-        start_time = time.time()
-        current_time = time.time()
-        while current_time < start_time + spinning_time:
-            self.cmd_vel_pub.publish(twist)
-            current_time = time.time()
+        # spinning_time = 1.8 * math.pi * self.number / self.spin_rate
+        # start_time = time.time()
+        # current_time = time.time()
+        # while current_time < start_time + spinning_time:
+        #     self.cmd_vel_pub.publish(twist)
+        #     current_time = time.time()
 
-        twist.angular.y = 0.0
-        self.cmd_vel_pub.publish(twist)
-        self.color = None
-        self.number = None
+        # twist.angular.y = 0.0
+        # self.cmd_vel_pub.publish(twist)
+        # self.color = None
+        # self.number = None
 
 
 def main():
