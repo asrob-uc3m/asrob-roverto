@@ -26,6 +26,7 @@ setup(
              'box_color = perception.box_color_detection:main',
              'aruco = perception.aruco_detection:main',
              'number = perception.number_detection:main',
+             'lidar = perception.lidar_detection:main',
              'spin = perception.perception_spin:main'
      ],
    },
