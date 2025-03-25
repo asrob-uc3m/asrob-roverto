@@ -24,14 +24,26 @@ class LidarDetector(Node):
         self.get_logger().info('LidarDetector subscriber is UP')
         
     def lidar_callback(self, msg):
-        # values at 0 degree
-        print(f'Distance left: {msg.ranges[0]}')
+        # ranges between [0.1, 12]
+        ranges = len(msg.ranges)
+
+        # values at 45 degree
+        left = np.array([msg.ranges[i] for i in range(ranges//4-5, ranges//4+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
+        self.get_logger().info(f'Distance left: {left.mean()}')
 
         # values at 90 degree
-        print(f'Distance front: {msg.ranges[214]}')
+        mid = np.array([msg.ranges[i] for i in range(ranges//2-5, ranges//2+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
+        self.get_logger().info(f'Distance front: {mid.mean()}')
 
-        # values at 180 degree
-        print(f'Distance right: {msg.ranges[429]}')
+        # values at 135 degree
+        right = np.array([msg.ranges[i] for i in range(ranges*3//4-5, ranges*3//4+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
+        self.get_logger().info(f'Distance right: {right.mean()}')
+
+        # values at 0-180 degree
+        back = [msg.ranges[i] for i in range(ranges-5, ranges) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min]
+        back += [msg.ranges[i] for i in range(0, 5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min]
+        back = np.array(back)
+        self.get_logger().info(f'Distance back: {back.mean()}')
 
 
 def main():
