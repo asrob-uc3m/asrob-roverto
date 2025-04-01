@@ -27,6 +27,7 @@ setup(
              'aruco = perception.aruco_detection:main',
              'number = perception.number_detection:main',
              'lidar = perception.lidar_detection:main',
+             'pid = perception.lidar_pid:main',
              'spin = perception.perception_spin:main'
      ],
    },

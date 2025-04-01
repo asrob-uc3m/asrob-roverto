@@ -4,7 +4,9 @@ import rclpy
 import numpy as np
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
+from geometry_msgs.msg import Twist
 from rclpy.qos import qos_profile_sensor_data
+from simple_pid import PID
 
 
 class LidarDetector(Node):
@@ -18,28 +20,35 @@ class LidarDetector(Node):
                                                      qos_profile=qos_profile_sensor_data)
         self.subscription
         self.get_logger().info('LidarDetector subscriber is UP')
+
+        # Publisher
+        # The Intuitive mode means that sending a positive angular velocity will always make the corner wheels turn regardless of the linear velocity.
+        self.publisher_ = self.create_publisher(Twist, '/cmd_vel_intuitive', 1)
+        self.get_logger().info('LidarDetector publisher is UP')
+
+        # PIDs
+        # TODO: ajustar valores
+        self.pid_linear = PID(-0.25, -0.0, -0.2, setpoint=0.3)
+        self.pid_linear.sample_time = 0.01
+        self.pid_angular = PID(-0.43, -0.0, -0.458, setpoint=0.0)
+        self.pid_angular.sample_time = 0.01
         
     def lidar_callback(self, msg):
-        # ranges between [0.1, 12]
+        # get distances
         ranges = len(msg.ranges)
 
-        # values at 45 degree
         left = np.array([msg.ranges[i] for i in range(ranges//4-5, ranges//4+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
-        self.get_logger().info(f'Distance left: {left.mean()}')
-
-        # values at 90 degree
         mid = np.array([msg.ranges[i] for i in range(ranges//2-5, ranges//2+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
-        self.get_logger().info(f'Distance front: {mid.mean()}')
-
-        # values at 135 degree
         right = np.array([msg.ranges[i] for i in range(ranges*3//4-5, ranges*3//4+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
-        self.get_logger().info(f'Distance right: {right.mean()}')
 
-        # values at 0-180 degree
-        back = [msg.ranges[i] for i in range(ranges-5, ranges) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min]
-        back += [msg.ranges[i] for i in range(0, 5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min]
-        back = np.array(back)
-        self.get_logger().info(f'Distance back: {back.mean()}')
+        # publish pid outputs
+        pid_output_1 = self.pid_linear(mid)
+        pid_output_2 = self.pid_angular(left-right)
+        
+        twist_msg = Twist()
+        twist_msg.linear.x = pid_output_1
+        twist_msg.angular.z = pid_output_2
+        self.publisher_.publish(twist_msg)
 
 
 def main():
