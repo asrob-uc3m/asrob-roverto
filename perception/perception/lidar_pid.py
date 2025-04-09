@@ -27,10 +27,9 @@ class LidarDetector(Node):
         self.get_logger().info('LidarDetector publisher is UP')
 
         # PIDs
-        # TODO: ajustar valores
         self.pid_linear = PID(-0.25, -0.0, -0.2, setpoint=0.3)
         self.pid_linear.sample_time = 0.01
-        self.pid_angular = PID(-0.43, -0.0, -0.458, setpoint=0.0)
+        self.pid_angular = PID(10, 0.5, 0.005, setpoint=0.0)
         self.pid_angular.sample_time = 0.01
         
     def lidar_callback(self, msg):
@@ -38,8 +37,17 @@ class LidarDetector(Node):
         ranges = len(msg.ranges)
 
         left = np.array([msg.ranges[i] for i in range(ranges//4-5, ranges//4+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
+        left = left.mean()
         mid = np.array([msg.ranges[i] for i in range(ranges//2-5, ranges//2+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
+        mid = mid.mean()
         right = np.array([msg.ranges[i] for i in range(ranges*3//4-5, ranges*3//4+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
+        right = right.mean()
+
+        # too far from a wall
+        if np.isnan(left):
+            left = 10
+        if np.isnan(right):
+            right = 10
 
         # publish pid outputs
         pid_output_1 = self.pid_linear(mid)
@@ -47,7 +55,12 @@ class LidarDetector(Node):
         
         twist_msg = Twist()
         twist_msg.linear.x = pid_output_1
-        twist_msg.angular.z = pid_output_2
+        if pid_output_1 < 0.2:
+            # rotate in place
+            twist_msg.angular.y = pid_output_2
+        else:
+            twist_msg.angular.z = pid_output_2
+        self.get_logger().info(f'linear {pid_output_1}, angular {pid_output_2}')
         self.publisher_.publish(twist_msg)
 
 
