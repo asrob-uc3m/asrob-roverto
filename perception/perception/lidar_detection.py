@@ -24,16 +24,16 @@ class LidarDetector(Node):
         ranges = len(msg.ranges)
 
         # values at 45 degree
-        left = np.array([msg.ranges[i] for i in range(ranges//4-5, ranges//4+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
-        self.get_logger().info(f'Distance left: {left.mean()}')
+        right = np.array([msg.ranges[i] for i in range(ranges//4-5, ranges//4+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
+        self.get_logger().info(f'Distance right: {right.mean()}')
 
         # values at 90 degree
         mid = np.array([msg.ranges[i] for i in range(ranges//2-5, ranges//2+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
         self.get_logger().info(f'Distance front: {mid.mean()}')
 
         # values at 135 degree
-        right = np.array([msg.ranges[i] for i in range(ranges*3//4-5, ranges*3//4+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
-        self.get_logger().info(f'Distance right: {right.mean()}')
+        left = np.array([msg.ranges[i] for i in range(ranges*3//4-5, ranges*3//4+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
+        self.get_logger().info(f'Distance left: {left.mean()}')
 
         # values at 0-180 degree
         back = [msg.ranges[i] for i in range(ranges-5, ranges) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min]
