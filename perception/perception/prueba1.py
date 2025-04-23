@@ -34,7 +34,7 @@ class PerceptionSpin(Node):
         self.get_logger().info('PerceptionSpin subscribers are UP')
 
         # Publisher
-        # self.cmd_vel_pub = self.create_publisher(Twist, "/cmd_vel", 10)
+        # self.cmd_vel_pub = self.create_publisher(Twist, "/cmd_vel_intuitive", 10)
 
         # Detection
         self.class_labels = {'uno': 1, 'dos': 2, 'tres': 3, 'cuatro': 4, 'cinco': 5, 'seis': 6, 'siete': 7, 'ocho': 8, 'nueve': 9}
