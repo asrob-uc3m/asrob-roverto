@@ -69,6 +69,7 @@ class ArucoDetector(Node):
         detector = cv2.aruco.ArucoDetector(aruco_dict, aruco_params)
 
         corners, ids, rejected = detector.detectMarkers(cv_image)
+        dist = []
 
         if len(corners) > 0:
             for (markerCorner, markerId) in zip(corners, ids):
@@ -89,12 +90,13 @@ class ArucoDetector(Node):
                 rvec , tvec, _ = cv2.aruco.estimatePoseSingleMarkers(markerCorner, self.marker_length, self.camera_matrix, self.dist_coeffs)
                 tvec = tvec[0][0]
                 front_distance = tvec[2] * 0.366
+                dist.append(front_distance)
 
-                # Publish
-                msg = Aruco()
-                msg.distance = front_distance
-                msg.id = markerId
-                self.publisher_.publish(msg)
+            # Publish
+            msg = Aruco()
+            msg.distance = dist
+            msg.id = ids
+            self.publisher_.publish(msg)
 
 
 def main():

@@ -1,2 +1,2 @@
-float64 distance
-int32 id
+float64[] distance
+int32[] id
