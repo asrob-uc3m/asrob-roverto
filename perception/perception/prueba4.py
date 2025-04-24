@@ -52,8 +52,10 @@ class SpaceMission(Node):
         self.aruco_count = 0
 
         # Spin
-        self.pid_linear = PID(-0.25, -0.0, -0.2, setpoint=0.3)
+        self.pid_linear = PID(-0.25, -0.0, -0.2, setpoint=0.0)
         self.pid_linear.sample_time = 0.01
+        self.pid_angular = PID(10, 0.5, 0.005, setpoint=0.0)
+        self.pid_angular.sample_time = 0.01
         self.spin_rate = 2.0 # angular rotation speed
         self.spin_time = 1.6 # hand tuned
         self.turn = 0
@@ -136,6 +138,13 @@ class SpaceMission(Node):
         else:
             self.color = None
 
+    def stop_rover(self):
+        twist = Twist()
+        twist.linear.x = 0
+        twist.angular.y = 0
+        twist.angular.z = 0
+        self.cmd_vel_pub.publish(twist)
+
     def launch_space_mission(self):
         # wait some while getting color and number info
         time.sleep(10)
@@ -154,11 +163,29 @@ class SpaceMission(Node):
             self.cmd_vel_pub.publish(twist)
             current_time = time.time()
 
-        twist.angular.y = 0
-        self.cmd_vel_pub.publish(twist)
+        self.stop_rover()
 
         # localize and go to start
-        # TODO
+        goal = (0, 0)
+        dist_to_goal = math.dist(goal, self.location)
+
+        while dist_to_goal > 0.1:
+            dist_to_goal = math.dist(goal, self.location)
+            ang_to_goal = math.acos((goal[0] - self.location[0]) / dist_to_goal)
+
+            pid_output_1 = self.pid_linear(dist_to_goal)
+            pid_output_2 = self.pid_angular(ang_to_goal)
+            
+            twist_msg = Twist()
+            twist_msg.linear.x = pid_output_1
+            if pid_output_1 < 0.2:
+                # rotate in place
+                twist_msg.angular.y = pid_output_2
+            else:
+                twist_msg.angular.z = pid_output_2
+            self.publisher_.publish(twist_msg)
+
+        self.stop_rover()
 
         # go forward unless turn aruco detected
         while self.turn != 3:
@@ -174,8 +201,7 @@ class SpaceMission(Node):
             
             self.cmd_vel_pub.publish(twist)
 
-        twist.angular.y = 0
-        self.cmd_vel_pub.publish(twist)
+        self.stop_rover()
 
         # stop at 1.5m from wall
         while self.mid > 1.5:
@@ -183,8 +209,7 @@ class SpaceMission(Node):
             twist.linear.x = pid_output_1
             self.cmd_vel_pub.publish(twist)
 
-        twist.linear.x = 0
-        self.cmd_vel_pub.publish(twist)
+        self.stop_rover()
 
         # spin number of times
         if self.color == 'red' or self.color == None:
@@ -199,8 +224,7 @@ class SpaceMission(Node):
             self.cmd_vel_pub.publish(twist)
             current_time = time.time()
 
-        twist.angular.y = 0.0
-        self.cmd_vel_pub.publish(twist)
+        self.stop_rover()
 
 
 def main():
