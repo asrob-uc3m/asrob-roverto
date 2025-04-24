@@ -34,15 +34,15 @@ class PerceptionSpin(Node):
         self.get_logger().info('PerceptionSpin subscribers are UP')
 
         # Publisher
-        # self.cmd_vel_pub = self.create_publisher(Twist, "/cmd_vel_intuitive", 10)
+        self.publisher_ = self.create_publisher(Twist, "/cmd_vel_intuitive", 10)
 
         # Detection
         self.class_labels = {'uno': 1, 'dos': 2, 'tres': 3, 'cuatro': 4, 'cinco': 5, 'seis': 6, 'siete': 7, 'ocho': 8, 'nueve': 9}
         self.color, self.number = None, None
 
         # Spin
-        self.spin_rate = 2.0 # angular rotation speed
-        self.spin_time = 1.6 # hand tuned
+        self.spin_rate = 2.0
+        self.lap_time = 10
 
     def number_callback(self, msg):
         number_name = msg.data
@@ -68,25 +68,25 @@ class PerceptionSpin(Node):
 
     def spin(self):
         self.get_logger().info(f'Got {self.number} and {self.color}')
-        # twist = Twist()
+        twist = Twist()
         if self.color == 'red':
             self.get_logger().info(f'Spinning {self.number} times to the right')
-            # twist.angular.y = self.spin_rate
+            twist.angular.y = self.spin_rate
         elif self.color == 'blue':
             self.get_logger().info(f'Spinning {self.number} times to the left')
-            # twist.angular.y = -self.spin_rate
+            twist.angular.y = -self.spin_rate
 
-        # spinning_time = 1.8 * math.pi * self.number / self.spin_rate
-        # start_time = time.time()
-        # current_time = time.time()
-        # while current_time < start_time + spinning_time:
-        #     self.cmd_vel_pub.publish(twist)
-        #     current_time = time.time()
+        spinning_time = self.lap_time * self.number
+        start_time = time.time()
+        current_time = time.time()
+        while current_time < start_time + spinning_time:
+            self.publisher_.publish(twist)
+            current_time = time.time()
 
-        # twist.angular.y = 0.0
-        # self.cmd_vel_pub.publish(twist)
-        # self.color = None
-        # self.number = None
+        twist.angular.y = 0.0
+        self.publisher_.publish(twist)
+        self.color = None
+        self.number = None
 
 
 def main():

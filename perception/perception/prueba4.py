@@ -11,7 +11,6 @@ from std_msgs.msg import String
 from custom_msg.msg import Aruco
 from rclpy.qos import qos_profile_sensor_data
 from simple_pid import PID
-from filterpy.kalman import ExtendedKalmanFilter
 
 
 class SpaceMission(Node):
@@ -56,20 +55,14 @@ class SpaceMission(Node):
         self.pid_linear.sample_time = 0.01
         self.pid_angular = PID(10, 0.5, 0.005, setpoint=0.0)
         self.pid_angular.sample_time = 0.01
-        self.spin_rate = 2.0 # angular rotation speed
-        self.spin_time = 1.6 # hand tuned
+        self.spin_rate = 2.0
+        self.lap_time = 10
         self.turn = 0
 
         # ArUco and waypoints
         self.aruco_positions = {}
         self.waypoint_positions = []
         self.location = (0, 0)
-        self.velocity = 0
-        self.filter = ExtendedKalmanFilter(dim_x=3, dim_z=3)
-        self.filter.x = self.location + self.velocity   # state estimate vector
-        self.filter.P = np.eye(3) * 0.1                 # covariance matrix
-        self.filter.R = np.eye(3) * 0.1                 # measurement noise matrix
-        self.filter.Q = np.eye(3) * 0.3                 # process noise matrix
 
         # distances
         self.left = 0
@@ -143,7 +136,7 @@ class SpaceMission(Node):
         twist.linear.x = 0
         twist.angular.y = 0
         twist.angular.z = 0
-        self.cmd_vel_pub.publish(twist)
+        self.publisher_.publish(twist)
 
     def launch_space_mission(self):
         # wait some while getting color and number info
@@ -156,11 +149,11 @@ class SpaceMission(Node):
         # spin once
         twist = Twist()
         twist.angular.y = self.spin_rate
-        spinning_time = 1.8 * math.pi / self.spin_rate
+        spinning_time = self.lap_time
         start_time = time.time()
         current_time = time.time()
         while current_time < start_time + spinning_time:
-            self.cmd_vel_pub.publish(twist)
+            self.publisher_.publish(twist)
             current_time = time.time()
 
         self.stop_rover()
@@ -199,7 +192,7 @@ class SpaceMission(Node):
                 twist.angular.y = self.spin_rate
                 twist.linear.x = 0.1
             
-            self.cmd_vel_pub.publish(twist)
+            self.publisher_.publish(twist)
 
         self.stop_rover()
 
@@ -207,7 +200,7 @@ class SpaceMission(Node):
         while self.mid > 1.5:
             pid_output_1 = self.pid_linear(self.mid) / 2
             twist.linear.x = pid_output_1
-            self.cmd_vel_pub.publish(twist)
+            self.publisher_.publish(twist)
 
         self.stop_rover()
 
@@ -217,11 +210,11 @@ class SpaceMission(Node):
         elif self.color == 'blue':
             twist.angular.y = - self.spin_rate
         
-        spinning_time = 1.8 * math.pi * self.aruco_count / self.spin_rate
+        spinning_time = self.lap_time * self.aruco_count
         start_time = time.time()
         current_time = time.time()
         while current_time < start_time + spinning_time:
-            self.cmd_vel_pub.publish(twist)
+            self.publisher_.publish(twist)
             current_time = time.time()
 
         self.stop_rover()

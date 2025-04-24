@@ -37,7 +37,6 @@ class WaypointNavigation(Node):
         self.aruco_positions = {}
         self.waypoint_positions = []
         self.location = (0, 0)
-        self.angle = 0
 
         # distances
         self.left = 0
@@ -64,6 +63,7 @@ class WaypointNavigation(Node):
             next_goal = min(distances, key = lambda d: d[2])[:-1]
             best_path.append(next_goal)
             waypoints.remove(next_goal)
+            loc = next_goal
 
         return best_path
 
