@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import sys
+import math
 import rclpy
 import numpy as np
 import cv2
@@ -9,6 +9,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from custom_msg.msg import Aruco
+from scipy.spatial.transform import Rotation
 
 
 ARUCO_DICT = {
@@ -57,6 +58,18 @@ class ArucoDetector(Node):
 
     def get_params(self):
         pass
+
+    def eulerx_from_rvec(rvecs):
+        # quaternion from rvec
+        rotation_matrix = np.eye(4)
+        rotation_matrix[0:3, 0:3] = cv2.Rodrigues(np.array(rvecs[0]))[0]
+        r = Rotation.from_matrix(rotation_matrix[0:3, 0:3])
+
+        # matrix to euler angles (just need x rotation)
+        angles = r.as_euler("xyz")
+        x_rot = angles[0]
+        
+        return x_rot
         
     def camera_callback(self, msg):
         # https://pyimagesearch.com/2020/12/21/detecting-aruco-markers-with-opencv-and-python/
@@ -70,6 +83,7 @@ class ArucoDetector(Node):
 
         corners, ids, rejected = detector.detectMarkers(cv_image)
         dist = []
+        ang = []
 
         if len(corners) > 0:
             for (markerCorner, markerId) in zip(corners, ids):
@@ -86,9 +100,10 @@ class ArucoDetector(Node):
                 cX = int((topLeft[0] + bottomRight[0]) / 2.0)
                 cY = int((topLeft[1] + bottomRight[1]) / 2.0)
 
-                # Distance
+                # Distance and angle
                 rvec , tvec, _ = cv2.aruco.estimatePoseSingleMarkers(markerCorner, self.marker_length, self.camera_matrix, self.dist_coeffs)
                 tvec = tvec[0][0]
+                ang.append(self.eulerx_from_rvec(rvec[0]))
                 front_distance = tvec[2] * 0.366
                 dist.append(front_distance)
 

@@ -2,6 +2,7 @@
 
 import rclpy
 import math
+import time
 import numpy as np
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
@@ -9,7 +10,6 @@ from geometry_msgs.msg import Twist
 from custom_msg.msg import Aruco
 from rclpy.qos import qos_profile_sensor_data
 from simple_pid import PID
-from filterpy.kalman import ExtendedKalmanFilter
 
 
 class WaypointNavigation(Node):
@@ -37,19 +37,36 @@ class WaypointNavigation(Node):
         self.aruco_positions = {}
         self.waypoint_positions = []
         self.location = (0, 0)
-        self.velocity = 0
-        self.filter = ExtendedKalmanFilter(dim_x=3, dim_z=3)
-        self.filter.x = self.location + self.velocity   # state estimate vector
-        self.filter.P = np.eye(3) * 0.1                 # covariance matrix
-        self.filter.R = np.eye(3) * 0.1                 # measurement noise matrix
-        self.filter.Q = np.eye(3) * 0.3                 # process noise matrix
+        self.angle = 0
 
         # distances
         self.left = 0
         self.right = 0
         self.mid = 0
 
+        # pids
+        self.pid_linear = PID(-0.25, -0.0, -0.2, setpoint=0.0)
+        self.pid_linear.sample_time = 0.01
+        self.pid_angular = PID(10, 0.5, 0.005, setpoint=0.0)
+        self.pid_angular.sample_time = 0.01
+
+        best_path = self.get_best_path()
+        self.waypoint_navigation(best_path)
+
         
+    def get_best_path(self):
+        waypoints = self.waypoint_positions
+        loc = (0, 0)
+        best_path = []
+
+        while len(waypoints) > 0:
+            distances = [(wp[0], wp[1], math.dist(loc, wp)) for wp in waypoints]
+            next_goal = min(distances, key = lambda d: d[2])[:-1]
+            best_path.append(next_goal)
+            waypoints.remove(next_goal)
+
+        return best_path
+
     def lidar_callback(self, msg):
         # get distances
         ranges = len(msg.ranges)
@@ -62,18 +79,55 @@ class WaypointNavigation(Node):
         self.right = right.mean()
 
     def aruco_callback(self, msg):
-        id = msg.id
-        dist = msg.dist
+        ids = msg.id
+        angs = msg.angle
+        dists = msg.distance
 
-        # compute location based on arucos on sight and distances
-        z = [dist[0], dist[1], ]
+        # compute location based on arucos on sight, distances and angles
+        loc_x = np.array()
+        loc_y = np.array()
+        for i in range(len(ids)):
+            loc_x.append(self.aruco_positions[i][0] + dists[i] * math.cos(angs[i]))
+            loc_y.append(self.aruco_positions[i][1] + dists[i] * math.sin(angs[i]))
 
+        self.location = (loc_x.mean(), loc_y.mean())
 
-    def waypoint_navigation(self):
-        distances = [(wp[0], wp[1], math.dist(self.location, wp)) for wp in self.waypoint_positions]
-        next_goal = min(distances, key = lambda d: d[2])[:-1]
+    def waypoint_navigation(self, best_path):
+        thres = 0.1
 
-        # considering location and goal, move. If obstacle, go around and continue
+        for goal in best_path:
+            dist_to_goal = 10
+
+            while dist_to_goal > thres:
+                dist_to_goal = math.dist(goal, self.location)
+                ang_to_goal = math.acos((goal[0] - self.location[0]) / dist_to_goal)
+                obstacle = self.mid < 0.3 or self.right < 0.3 or self.left < 0.3
+
+                # considering location and goal, move
+                if not obstacle:
+                    pid_output_1 = self.pid_linear(dist_to_goal)
+                    pid_output_2 = self.pid_angular(ang_to_goal)
+                    
+                    twist_msg = Twist()
+                    twist_msg.linear.x = pid_output_1
+                    if pid_output_1 < 0.2:
+                        # rotate in place
+                        twist_msg.angular.y = pid_output_2
+                    else:
+                        twist_msg.angular.z = pid_output_2
+                    self.publisher_.publish(twist_msg)
+
+                else:
+                    pass
+
+            # stop
+            twist_msg = Twist()
+            twist_msg.linear.x = 0
+            twist_msg.angular.y = 0
+            twist_msg.angular.z = 0
+            self.publisher_.publish(twist_msg)
+            time.sleep(5)
+
 
 def main():
     rclpy.init()

@@ -90,10 +90,18 @@ class SpaceMission(Node):
 
     def aruco_callback(self, msg):
         ids = msg.id
-        dists = msg.dist
+        angs = msg.angle
+        dists = msg.distance
 
         # compute location based on arucos on sight and distances
-        z = [dists[0], dists[1], ]
+        loc_x = np.array()
+        loc_y = np.array()
+        for i in range(len(ids)):
+            # TODO: not all arucos for location
+            loc_x.append(self.aruco_positions[i][0] + dists[i] * math.cos(angs[i]))
+            loc_y.append(self.aruco_positions[i][1] + dists[i] * math.sin(angs[i]))
+
+        self.location = (loc_x.mean(), loc_y.mean())
 
         # count arucos
         # TODO: gonna be detecting the same number for a while, how to only count once?     MAYBE ADD IF DISTANCE IS WHATEVER
