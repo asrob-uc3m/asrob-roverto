@@ -92,27 +92,32 @@ class SpaceMission(Node):
         loc_x = np.array()
         loc_y = np.array()
         for i in range(len(ids)):
-            # TODO: not all arucos for location
-            loc_x.append(self.aruco_positions[i][0] + dists[i] * math.cos(angs[i]))
-            loc_y.append(self.aruco_positions[i][1] + dists[i] * math.sin(angs[i]))
+            if ids[i] in self.aruco_positions.keys():
+                loc_x.append(self.aruco_positions[ids[i]][0] + dists[i] * math.cos(angs[i]))
+                loc_y.append(self.aruco_positions[ids[i]][1] + dists[i] * math.sin(angs[i]))
 
-        self.location = (loc_x.mean(), loc_y.mean())
+        if len(loc_x) > 0:
+            self.location = (loc_x.mean(), loc_y.mean())
+        else:
+            self.location = (0, 0)
 
         # count arucos
-        # TODO: gonna be detecting the same number for a while, how to only count once?     MAYBE ADD IF DISTANCE IS WHATEVER
-        if self.color == None and 73 in ids:
+        # Only count if at a determined distance (otherwise can count multiple times)
+        if self.color == None and 73 in ids and dists[ids.index(73)] == 1.0:
             self.aruco_count += 1
-        elif self.color == 'red' or self.color == 'blue' and self.number in ids:
+        elif (self.color == 'red' or self.color == 'blue') and self.number in ids and dists[ids.index(self.number)] == 1.0:
             self.aruco_count += 1
 
         # signal turns
-        # TODO: gonna be detecting the same number for a while, how to only count once?     MAYBE ADD IF DISTANCE IS WHATEVER
-        if 10 in ids:
+        turn_possible = self.right > 1 and self.left > 1
+        if 10 in ids and turn_possible:
             self.turn = 1   # turn left
-        elif 11 in ids:
+        elif 11 in ids and turn_possible:
             self.turn = 2   # turn right
-        elif 15 in ids:
+        elif 15 in ids and turn_possible:
             self.turn = 3   # stop
+        else:
+            self.turn = 0   # no turn
         
 
     def number_callback(self, msg):
