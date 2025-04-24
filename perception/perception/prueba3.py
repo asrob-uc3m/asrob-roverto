@@ -73,8 +73,12 @@ class WaypointNavigation(Node):
 
         left = np.array([msg.ranges[i] for i in range(ranges//4-5, ranges//4+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
         self.left = left.mean()
+        mid_left = np.array([msg.ranges[i] for i in range(ranges*3//8-5, ranges*3//8+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
+        self.mid_left = mid_left.mean()
         mid = np.array([msg.ranges[i] for i in range(ranges//2-5, ranges//2+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
         self.mid = mid.mean()
+        mid_right = np.array([msg.ranges[i] for i in range(ranges*5//8-5, ranges*5//8+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
+        self.mid_right = mid_right.mean()
         right = np.array([msg.ranges[i] for i in range(ranges*3//4-5, ranges*3//4+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
         self.right = right.mean()
 
@@ -101,7 +105,7 @@ class WaypointNavigation(Node):
             while dist_to_goal > thres:
                 dist_to_goal = math.dist(goal, self.location)
                 ang_to_goal = math.acos((goal[0] - self.location[0]) / dist_to_goal)
-                obstacle = self.mid < 0.3 or self.right < 0.3 or self.left < 0.3
+                obstacle = self.mid < 0.3 or self.mid_right < 0.3 or self.mid_left < 0.3
 
                 # considering location and goal, move
                 if not obstacle:
@@ -118,7 +122,14 @@ class WaypointNavigation(Node):
                     self.publisher_.publish(twist_msg)
 
                 else:
-                    pass
+                    # just obstacles forward for the moment
+                    twist_msg = Twist()
+                    twist_msg.linear.x = -0.1
+                    if self.mid_right < 0.3:
+                        twist_msg.angular.y = -1.75
+                    elif self.mid_left < 0.3:
+                        twist_msg.angular.y = 1.75
+                    self.publisher_.publish(twist_msg)
 
             # stop
             twist_msg = Twist()
