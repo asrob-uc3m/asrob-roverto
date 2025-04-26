@@ -28,7 +28,9 @@ setup(
              'number = perception.number_detection:main',
              'lidar = perception.lidar_detection:main',
              'prueba1 = perception.prueba1:main',
-             'prueba2 = perception.prueba2:main'
+             'prueba2 = perception.prueba2:main',
+             'prueba3 = perception.prueba3:main',
+             'prueba4 = perception.prueba4:main'
      ],
    },
 )
