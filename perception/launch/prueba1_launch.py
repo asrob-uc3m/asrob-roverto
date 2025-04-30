@@ -32,7 +32,7 @@ def generate_launch_description():
         Node(
             package='perception',
             namespace='perception',
-            executable='spin',
+            executable='prueba1',
             name='perception_spin',
             output='screen'
         )
