@@ -10,6 +10,7 @@ from geometry_msgs.msg import Twist
 from custom_msg.msg import Aruco
 from rclpy.qos import qos_profile_sensor_data
 from simple_pid import PID
+from scipy.optimize import least_squares
 
 
 class WaypointNavigation(Node):
@@ -66,6 +67,27 @@ class WaypointNavigation(Node):
             loc = next_goal
 
         return best_path
+        
+    def intersectionPoint(p1, p2, p3=None):
+        # https://stackoverflow.com/questions/60555205/in-python-how-to-get-intersection-point-of-three-or-more-circles-with-or-without
+        if p3 == None:
+            p3 = p2
+
+        x1, y1, dist_1 = (p1[0], p1[1], p1[2])
+        x2, y2, dist_2 = (p2[0], p2[1], p2[2])
+        x3, y3, dist_3 = (p3[0], p3[1], p3[2])
+
+        def eq(g):
+            x, y = g
+            return (
+                (x - x1)**2 + (y - y1)**2 - dist_1**2,
+                (x - x2)**2 + (y - y2)**2 - dist_2**2,
+                (x - x3)**2 + (y - y3)**2 - dist_3**2)
+
+        guess = (x1, y1 + dist_1)
+        ans = least_squares(eq, guess, ftol=None, xtol=None)
+
+        return ans
 
     def lidar_callback(self, msg):
         # get distances
@@ -88,13 +110,22 @@ class WaypointNavigation(Node):
         dists = msg.distance
 
         # compute location based on arucos on sight, distances and angles
-        loc_x = np.array()
-        loc_y = np.array()
-        for i in range(len(ids)):
-            loc_x.append(self.aruco_positions[ids[i]][0] + dists[i] * math.cos(angs[i]))
-            loc_y.append(self.aruco_positions[ids[i]][1] + dists[i] * math.sin(angs[i]))
+        if len(ids) == 0:
+            loc_x, loc_y = self.location
+        elif len(ids) == 1:
+            loc_x = self.aruco_positions[ids[0]][0] + dists[0] * math.cos(angs[0])
+            loc_y = self.aruco_positions[ids[0]][1] + dists[0] * math.sin(angs[0])
+        elif len(ids) == 2:
+            ans = self.intersectionPoint((self.aruco_positions[ids[0]][0], self.aruco_positions[ids[0]][1], dists[0]), 
+                                         (self.aruco_positions[ids[1]][0], self.aruco_positions[ids[1]][1], dists[1]))
+            loc_x, loc_y = ans.x
+        else:
+            ans = self.intersectionPoint((self.aruco_positions[ids[0]][0], self.aruco_positions[ids[0]][1], dists[0]), 
+                                         (self.aruco_positions[ids[1]][0], self.aruco_positions[ids[1]][1], dists[1]),
+                                         (self.aruco_positions[ids[2]][0], self.aruco_positions[ids[2]][1], dists[2]))
+            loc_x, loc_y = ans.x
 
-        self.location = (loc_x.mean(), loc_y.mean())
+        self.location = (loc_x, loc_y)
 
     def waypoint_navigation(self, best_path):
         thres = 0.1
