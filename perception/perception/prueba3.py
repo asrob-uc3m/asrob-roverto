@@ -35,7 +35,10 @@ class WaypointNavigation(Node):
         self.get_logger().info('WaypointNavigation publisher is UP')
 
         # ArUco and waypoints
-        self.aruco_positions = {}
+        self.aruco_positions = {20: (1.5, 7), 25: (3.5, 7), 28: (5.5, 7),
+                                40: (0, 1.5), 44: (0, 3.5), 49: (0, 5.5),
+                                60: (1.5, 0), 62: (3.5, 0), 67: (5.5, 0),
+                                90: (7, 1.5), 93: (7, 3.5), 96: (7, 5.5)}
         self.waypoint_positions = []
         self.location = (0, 0)
 

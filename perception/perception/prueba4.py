@@ -60,7 +60,9 @@ class SpaceMission(Node):
         self.turn = 0
 
         # ArUco and waypoints
-        self.aruco_positions = {}
+        self.aruco_positions = {20: (1, 5), 28: (4, 5), 49: (0, 3.5),
+                                40: (0, 1.5), 60: (1.5, 0), 67: (3.5, 0),
+                                90: (5, 1.5), 96: (5, 3.5)}
         self.waypoint_positions = []
         self.location = (0, 0)
 
@@ -164,7 +166,7 @@ class SpaceMission(Node):
         self.stop_rover()
 
         # localize and go to start
-        goal = (0, 0)
+        goal = (2.5, 5)
         dist_to_goal = math.dist(goal, self.location)
 
         while dist_to_goal > 0.1:
