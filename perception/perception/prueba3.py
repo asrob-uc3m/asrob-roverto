@@ -24,7 +24,8 @@ class WaypointNavigation(Node):
                                                      qos_profile=qos_profile_sensor_data)
         self.subscription = self.create_subscription(Aruco,
                                                      '/aruco_topic',
-                                                     self.aruco_callback)
+                                                     self.aruco_callback,
+                                                     qos_profile=qos_profile_sensor_data)
 
         self.subscription
         self.get_logger().info('WaypointNavigation subscriber is UP')
@@ -39,13 +40,15 @@ class WaypointNavigation(Node):
                                 40: (0, 1.5), 44: (0, 3.5), 49: (0, 5.5),
                                 60: (1.5, 0), 62: (3.5, 0), 67: (5.5, 0),
                                 90: (7, 1.5), 93: (7, 3.5), 96: (7, 5.5)}
-        self.waypoint_positions = []
+        self.waypoint_positions = [(1.5, 1.5), (5, 2.5), (3, 3), (2, 5.5), (5.5, 5.5)]
         self.location = (0, 0)
 
         # distances
         self.left = 0
         self.right = 0
         self.mid = 0
+        self.mid_right = 0
+        self.mid_left = 0
 
         # pids
         self.pid_linear = PID(-0.25, -0.0, -0.2, setpoint=0.0)

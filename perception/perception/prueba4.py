@@ -25,7 +25,8 @@ class SpaceMission(Node):
                                                      qos_profile=qos_profile_sensor_data)
         self.subscription2 = self.create_subscription(Aruco,
                                                      '/aruco_topic',
-                                                     self.aruco_callback)
+                                                     self.aruco_callback,
+                                                     qos_profile=qos_profile_sensor_data)
         self.subscription3 = self.create_subscription(String,
                                                      '/perception/number_topic',
                                                      self.number_callback, 

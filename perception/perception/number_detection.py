@@ -31,7 +31,7 @@ class NumberDetector(Node):
         self.get_logger().info('NumberDetector publisher is UP')
 
         # Load YOLO model with custom weights
-        self.yolo_model = YOLO("models/digits_color_bg-2.pt")
+        self.yolo_model = YOLO("/home/rover/osr_ws_uc3m/src/asrob-roverto/perception/models/digits_color_bg-2.pt")
         self.names = self.yolo_model.names
         
     def camera_callback(self, msg):

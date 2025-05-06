@@ -75,7 +75,7 @@ class BoxColorDetector(Node):
             area_blue = cv2.contourArea(contour_blue)
 
         # Paint biggest area (none if too little)
-        thres = 20000
+        thres = 5000
         if area_red < thres and area_blue < thres:
             msg = String()
             msg.data = 'none'
