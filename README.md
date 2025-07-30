@@ -59,3 +59,32 @@ cd ydlidar_ros2_driver/
 source install/setup.bash
 ros2 launch ydlidar_ros2_driver ydlidar_launch.py 
 ```
+
+**IMPORTANT**
+
+The parameter file `ydlidar_ros2_driver/params/ydlidar.yaml` has to be the one for the LiDAR we are using. Check [X4-Pro.yaml](https://github.com/YDLIDAR/ydlidar_ros2_driver/blob/master/params/X4-Pro.yaml):
+```yaml
+ydlidar_ros2_driver_node:
+  ros__parameters:
+    port: /dev/ttyUSB0
+    frame_id: laser_frame
+    ignore_array: ""
+    baudrate: 128000
+    lidar_type: 1
+    device_type: 0
+    sample_rate: 5
+    abnormal_check_count: 4
+    fixed_resolution: true
+    reversion: true
+    inverted: true
+    auto_reconnect: true
+    isSingleChannel: true
+    intensity: false
+    support_motor_dtr: false
+    angle_max: 180.0
+    angle_min: -180.0
+    range_max: 12.0
+    range_min: 0.1
+    frequency: 10.0
+    invalid_range_is_inf: false
+```
