@@ -34,12 +34,13 @@ class LidarDetector(Node):
         self.pid_angular = PID(10, 0.5, 0.005, setpoint=0.0)
         self.pid_angular.sample_time = 0.01
 
-        # set servos straight
+        # servos
         self.motor_index = [15, 14, 13, 12]
         self.straight_angle = [90, 90, 95, 35]
-        self.right_angle = []
-        self.left_angle = []
+        self.right_angle = [110, 60, 70, 60]
+        self.left_angle = [60, 110, 115, 10]
 
+        # set straight
         self.kit = ServoKit(channels=16)
         sleep(0.1)
         for index, angle in zip(self.motor_index, self.straight_angle):
@@ -53,28 +54,42 @@ class LidarDetector(Node):
 
         left = np.array([msg.ranges[i] for i in range(ranges//4-5, ranges//4+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
         left = left.mean()
+        mid_left = np.array([msg.ranges[i] for i in range(ranges*3//8-5, ranges*3//8+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
+        mid_left = mid_left.mean()
         mid = np.array([msg.ranges[i] for i in range(ranges//2-5, ranges//2+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
         mid = mid.mean()
+        mid_right = np.array([msg.ranges[i] for i in range(ranges*5//8-5, ranges*5//8+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
+        mid_right = mid_right.mean()
         right = np.array([msg.ranges[i] for i in range(ranges*3//4-5, ranges*3//4+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
         right = right.mean()
 
-        # space to turn
-        if np.isnan(left) or left > 0.5:
+        # wall too far
+        if np.isnan(left):
             left = 10
-            if self.kit.servo[0].angle != self.left_angle[0]:
-                for index, angle in zip(self.motor_index, self.left_angle):
-                    self.kit.servo[index].angle = angle
-            
-        elif np.isnan(right) or right > 0.5:
+        if np.isnan(right):
             right = 10
-            if self.kit.servo[0].angle != self.right_angle[0]:
-                for index, angle in zip(self.motor_index, self.right_angle):
-                    self.kit.servo[index].angle = angle
+        if np.isnan(mid_left):
+            mid_left = 10
+        if np.isnan(mid_right):
+            mid_right = 10
 
-        else:
-            if self.kit.servo[0].angle != self.straight_angle[0]:
-                for index, angle in zip(self.motor_index, self.straight_angle):
-                    self.kit.servo[index].angle = angle
+        turn_left = left + mid_right
+        turn_right = mid_left + right
+
+        self.get_logger().info(f'left {turn_left.round(2)}, mid {mid.round(2)}, right {turn_right.round(2)}')
+
+        # turn servos
+        if turn_left > 3.5 and mid < 1.5 and self.kit.servo[0].angle != self.left_angle[0]:
+            for index, angle in zip(self.motor_index, self.left_angle):
+                self.kit.servo[index].angle = angle
+            
+        elif turn_right > 3.5 and mid < 1.5 and self.kit.servo[0].angle != self.right_angle[0]:
+            for index, angle in zip(self.motor_index, self.right_angle):
+                self.kit.servo[index].angle = angle
+
+        elif self.kit.servo[0].angle != self.straight_angle[0]:
+            for index, angle in zip(self.motor_index, self.straight_angle):
+                self.kit.servo[index].angle = angle
 
         # publish pid outputs
         pid_output_1 = self.pid_linear(mid)
@@ -87,7 +102,7 @@ class LidarDetector(Node):
             twist_msg.angular.y = pid_output_2
         else:
             twist_msg.angular.z = pid_output_2
-        self.get_logger().info(f'linear {pid_output_1}, angular {pid_output_2}')
+        # self.get_logger().info(f'linear {pid_output_1}, angular {pid_output_2}')
         self.publisher_.publish(twist_msg)
 
 
