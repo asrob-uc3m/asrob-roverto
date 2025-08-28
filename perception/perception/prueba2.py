@@ -7,6 +7,8 @@ from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 from rclpy.qos import qos_profile_sensor_data
 from simple_pid import PID
+from adafruit_servokit import ServoKit
+from time import sleep
 
 
 class LidarDetector(Node):
@@ -31,6 +33,19 @@ class LidarDetector(Node):
         self.pid_linear.sample_time = 0.01
         self.pid_angular = PID(10, 0.5, 0.005, setpoint=0.0)
         self.pid_angular.sample_time = 0.01
+
+        # set servos straight
+        self.motor_index = [15, 14, 13, 12]
+        self.straight_angle = [90, 90, 95, 35]
+        self.right_angle = []
+        self.left_angle = []
+
+        self.kit = ServoKit(channels=16)
+        sleep(0.1)
+        for index, angle in zip(self.motor_index, self.straight_angle):
+            self.kit.servo[index].actuation_range = 300
+            self.kit.servo[index].set_pulse_width_range(500, 2500)
+            self.kit.servo[index].angle = angle
         
     def lidar_callback(self, msg):
         # get distances
@@ -43,11 +58,23 @@ class LidarDetector(Node):
         right = np.array([msg.ranges[i] for i in range(ranges*3//4-5, ranges*3//4+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
         right = right.mean()
 
-        # too far from a wall
-        if np.isnan(left):
+        # space to turn
+        if np.isnan(left) or left > 0.5:
             left = 10
-        if np.isnan(right):
+            if self.kit.servo[0].angle != self.left_angle[0]:
+                for index, angle in zip(self.motor_index, self.left_angle):
+                    self.kit.servo[index].angle = angle
+            
+        elif np.isnan(right) or right > 0.5:
             right = 10
+            if self.kit.servo[0].angle != self.right_angle[0]:
+                for index, angle in zip(self.motor_index, self.right_angle):
+                    self.kit.servo[index].angle = angle
+
+        else:
+            if self.kit.servo[0].angle != self.straight_angle[0]:
+                for index, angle in zip(self.motor_index, self.straight_angle):
+                    self.kit.servo[index].angle = angle
 
         # publish pid outputs
         pid_output_1 = self.pid_linear(mid)

@@ -22,9 +22,16 @@ For the rover.
 Calibrate servos by running `python3 calibrate_servos.py [id] [angle]` from `~/osr_ws/src/osr-rover-code/scripts`. Since the PCA9685 is inverted, `id` can take value 15 (back right), 14 (front right), 13 (front left) or 12 (back left). After calibration, the best angles have been found to be the following:
 ```bash
 python3 calibrate_servos.py 15 90
-python3 calibrate_servos.py 14 150
-python3 calibrate_servos.py 13 45
-python3 calibrate_servos.py 12 70
+python3 calibrate_servos.py 14 90
+python3 calibrate_servos.py 13 95
+python3 calibrate_servos.py 12 35
+```
+To turn:
+```bash
+python3 calibrate_servos.py 15 45
+python3 calibrate_servos.py 14 120
+python3 calibrate_servos.py 13 65
+python3 calibrate_servos.py 12 60
 ```
 
 To update this in the rover code, the next lines should be changed:

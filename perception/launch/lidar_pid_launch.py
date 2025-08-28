@@ -29,7 +29,7 @@ def generate_launch_description():
         Node(
             package='perception',
             namespace='perception',
-            executable='pid',
-            name='lidar_pid'
+            executable='prueba2',
+            name='prueba2'
         )
     ])

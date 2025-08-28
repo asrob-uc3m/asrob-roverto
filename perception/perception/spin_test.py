@@ -8,7 +8,9 @@ sys.path.append(path.join(path.expanduser('~'), 'osr_ws_uc3m/src/osr-rover-code/
 from roboclaw import Roboclaw
 from adafruit_servokit import ServoKit
 
+
 BAUD_RATE = 115200
+
 
 def test_connection(address):
     roboclaw0 = Roboclaw("/dev/serial0", BAUD_RATE)
@@ -46,7 +48,7 @@ if __name__ == "__main__":
     drive_vel = 14652
 
     motor_index = [15, 14, 13, 12]
-    target_angle = [35, 125, 70, 70]
+    target_angle = [45, 120, 65, 60]
 
     kit = ServoKit(channels=16)
     sleep(0.1)
@@ -54,14 +56,13 @@ if __name__ == "__main__":
         kit.servo[index].actuation_range = 300
         kit.servo[index].set_pulse_width_range(500, 2500)
         kit.servo[index].angle = angle
-        self.get_logger().info(f'Servo motor at channel {index} was set to {angle}')
     
     rc1.DutyAccelM1(address1, drive_accel, drive_vel)
     rc1.DutyAccelM2(address1, drive_accel, drive_vel)
-    rc2.DutyAccelM1(address2, drive_accel, -drive_vel * -1)
+    rc2.DutyAccelM1(address2, drive_accel, drive_vel)
     rc2.DutyAccelM2(address2, drive_accel, drive_vel)
-    rc3.DutyAccelM1(address3, drive_accel, -drive_vel * -1)
-    rc3.DutyAccelM2(address3, drive_accel, drive_vel * -1)
+    rc3.DutyAccelM1(address3, drive_accel, drive_vel)
+    rc3.DutyAccelM2(address3, drive_accel, -drive_vel)
     sleep(5)
     rc1.ForwardM1(address1, 0)
     rc1.ForwardM2(address1, 0)
@@ -72,11 +73,11 @@ if __name__ == "__main__":
     sleep(1)
     rc1.DutyAccelM1(address1, drive_accel, -drive_vel)
     rc1.DutyAccelM2(address1, drive_accel, -drive_vel)
-    rc2.DutyAccelM1(address2, drive_accel, drive_vel)
+    rc2.DutyAccelM1(address2, drive_accel, -drive_vel)
     rc2.DutyAccelM2(address2, drive_accel, -drive_vel)
-    rc3.DutyAccelM1(address3, drive_accel, drive_vel)
-    rc3.DutyAccelM2(address3, drive_accel, -drive_vel)
-    sleep(1)
+    rc3.DutyAccelM1(address3, drive_accel, -drive_vel)
+    rc3.DutyAccelM2(address3, drive_accel, drive_vel)
+    sleep(5)
     rc1.ForwardM1(address1, 0)
     rc1.ForwardM2(address1, 0)
     rc2.ForwardM1(address2, 0)
