@@ -5,6 +5,7 @@ from sensor_msgs.msg import LaserScan
 from rclpy.qos import qos_profile_sensor_data
 import simple_pid
 import math
+import numpy as np
 
 
 class pid_controller_node(Node):   ##Node for Laser Scan subscription
@@ -38,34 +39,38 @@ class pid_controller_node(Node):   ##Node for Laser Scan subscription
         self.timer = self.create_timer(0.025, self.update_and_publish)
 
 
-    def lidar_listener_callback_1(self, msg):
-        self.ranges = [10.0 if r == 0 else r for r in msg.ranges]
-        ranges = self.ranges
-        num_ranges = len(ranges)  
-        
-        self.angle_increment = msg.angle_increment
-        angle_increment = self.angle_increment
-            
-        angle_wings_rad = self.angle_wings
-        
-        # Calculate d_left
-        left_start_angle = 2 * num_ranges // 9 - int(angle_wings_rad / angle_increment)
-        left_end_angle = 2 * num_ranges // 9 + int(angle_wings_rad / angle_increment)
-        left_ranges = ranges[left_start_angle:left_end_angle]
+    def lidar_callback(self, msg):
+        # get distances
+        ranges = len(msg.ranges)
 
-        d_left = min(sum(left_ranges) / len(left_ranges), 2)
-        
-        # Calculate d_right (average of the smallest 5 ranges within angle_wings of 270 degrees)
-        right_start_angle = 7 * num_ranges // 9 - int(angle_wings_rad / angle_increment)
-        right_end_angle = 7 * num_ranges // 9 + int(angle_wings_rad / angle_increment)       
-        right_ranges = ranges[right_start_angle:right_end_angle]
-        
-        d_right = min(sum(right_ranges) / len(right_ranges), 2)
+        left = np.array([msg.ranges[i] for i in range(ranges//4-5, ranges//4+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
+        left = left.mean()
+        mid_left = np.array([msg.ranges[i] for i in range(ranges*3//8-5, ranges*3//8+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
+        mid_left = mid_left.mean()
+        mid = np.array([msg.ranges[i] for i in range(ranges//2-5, ranges//2+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
+        mid = mid.mean()
+        mid_right = np.array([msg.ranges[i] for i in range(ranges*5//8-5, ranges*5//8+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
+        mid_right = mid_right.mean()
+        right = np.array([msg.ranges[i] for i in range(ranges*3//4-5, ranges*3//4+5) if msg.ranges[i] < msg.range_max and msg.ranges[i] > msg.range_min])
+        right = right.mean()
 
-        # Calculate d_front
-        d_front_0 = (ranges[1]+ranges[2]+ranges[-2] + ranges[-1]) / 4.0
+        # wall too far
+        if np.isnan(left):
+            left = 10
+        if np.isnan(right):
+            right = 10
+        if np.isnan(mid_left):
+            mid_left = 10
+        if np.isnan(mid_right):
+            mid_right = 10
 
-        self.get_logger().info(f'left {d_left.round(2)}, mid {d_front_0.round(2)}, right {d_right.round(2)}')
+        turn_left = left + mid_right
+        turn_right = mid_left + right
+        d_left = min(turn_left, 3)
+        d_right = min(turn_right, 3)
+        d_front_0 = mid
+
+        self.get_logger().info(f'left {d_left}, mid {d_front_0}, right {d_right}')
         
         # Update class variables
         self.d_front = min(d_front_0, 2.5)

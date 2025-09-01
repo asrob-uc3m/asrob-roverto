@@ -39,6 +39,8 @@ To update this in the rover code, the next lines should be changed:
 - Line 55 in `osr_ws/src/osr-rover-code/ROS/osr_control/osr_control/servo_control.py`. Change to `for servo_id in [reversed(range(12, 16))]:`
 - Line 77 in the same file. Change to `self.kit.servo[15 - ind].angle = angle`
 
+Additionally, because the middle-right wheel has +/- switched, line 284 in `/home/rover/osr_ws_uc3m/src/osr-rover-code/ROS/osr_control/osr_control/roboclaw_wrapper.py` has to be changed to `self.send_velocity_cmd(props["address"], props["channel"], -vel_cmd)`
+
 ### INA260
 INA260 is at I2C address 0x40. To check I2C addresses, run `i2cdetect -y 1`. Check INA is working with 
 ```bash

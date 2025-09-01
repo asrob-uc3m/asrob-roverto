@@ -29,7 +29,7 @@ class LidarDetector(Node):
         self.get_logger().info('LidarDetector publisher is UP')
 
         # PIDs
-        self.pid_linear = PID(-0.25, -0.0, -0.2, setpoint=0.3)
+        self.pid_linear = PID(-0.25, -0.0, -0.2, setpoint=0.1)
         self.pid_linear.sample_time = 0.01
         self.pid_angular = PID(10, 0.5, 0.005, setpoint=0.0)
         self.pid_angular.sample_time = 0.01
@@ -79,11 +79,11 @@ class LidarDetector(Node):
         self.get_logger().info(f'left {turn_left.round(2)}, mid {mid.round(2)}, right {turn_right.round(2)}')
 
         # turn servos
-        if turn_left > 3.5 and mid < 1.5 and self.kit.servo[0].angle != self.left_angle[0]:
+        if turn_left > 3 and mid < 1.3 and self.kit.servo[0].angle != self.left_angle[0]:
             for index, angle in zip(self.motor_index, self.left_angle):
                 self.kit.servo[index].angle = angle
             
-        elif turn_right > 3.5 and mid < 1.5 and self.kit.servo[0].angle != self.right_angle[0]:
+        elif turn_right > 3 and mid < 1.3 and self.kit.servo[0].angle != self.right_angle[0]:
             for index, angle in zip(self.motor_index, self.right_angle):
                 self.kit.servo[index].angle = angle
 
