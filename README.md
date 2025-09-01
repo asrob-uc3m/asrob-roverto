@@ -35,9 +35,9 @@ python3 calibrate_servos.py 12 60
 ```
 
 To update this in the rover code, the next lines should be changed:
-- Line 47 in `osr_ws/src/osr-rover-code/ROS/osr_bringup/launch/osr_launch.py`. Change to `parameters=[{'centered_pulse_widths': [90, 150, 45, 70]}]`
-- Line 55 in `osr_ws/src/osr-rover-code/ROS/osr_control/osr_control/servo_control.py`. Change to `for servo_id in reversed(range(16, 12)):`
-- Line 65 in the same file. Change to `for ind, corner_name in zip(reversed(range(16, 12)), self.corner_motors):`
+- Line 47 in `osr_ws/src/osr-rover-code/ROS/osr_bringup/launch/osr_launch.py`. Change to `parameters=[{'centered_pulse_widths': [90, 90, 95, 35]}]`
+- Line 55 in `osr_ws/src/osr-rover-code/ROS/osr_control/osr_control/servo_control.py`. Change to `for servo_id in [reversed(range(12, 16))]:`
+- Line 77 in the same file. Change to `self.kit.servo[15 - ind].angle = angle`
 
 ### INA260
 INA260 is at I2C address 0x40. To check I2C addresses, run `i2cdetect -y 1`. Check INA is working with 
