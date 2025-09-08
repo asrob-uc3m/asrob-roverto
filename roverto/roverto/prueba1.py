@@ -31,11 +31,11 @@ class PerceptionSpin(Node):
 
         # Subscriber
         self.subscription = self.create_subscription(String,
-                                                     '/asrob-roverto/number_topic',
+                                                     '/roverto/number_topic',
                                                      self.number_callback, 
                                                      1)
         self.subscription = self.create_subscription(String,
-                                                     '/asrob-roverto/box_color_topic',
+                                                     '/roverto/box_color_topic',
                                                      self.color_callback, 
                                                      1)                                 
         self.subscription

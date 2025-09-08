@@ -2,7 +2,7 @@ import os
 from glob import glob
 from setuptools import setup
 
-package_name = 'asrob-roverto'
+package_name = 'roverto'
 
 setup(
  name=package_name,
@@ -23,15 +23,15 @@ setup(
  tests_require=['pytest'],
  entry_points={
      'console_scripts': [
-             'box_color = asrob-roverto.box_color_detection:main',
-             'aruco = asrob-roverto.aruco_detection:main',
-             'number = asrob-roverto.number_detection:main',
-             'lidar = asrob-roverto.lidar_detection:main',
-             'prueba1 = asrob-roverto.prueba1:main',
-             'prueba2 = asrob-roverto.prueba2:main',
-             'og_prueba2 = asrob-roverto.og_prueba2:main',
-             'prueba3 = asrob-roverto.prueba3:main',
-             'prueba4 = asrob-roverto.prueba4:main'
+             'box_color = roverto.box_color_detection:main',
+             'aruco = roverto.aruco_detection:main',
+             'number = roverto.number_detection:main',
+             'lidar = roverto.lidar_detection:main',
+             'prueba1 = roverto.prueba1:main',
+             'prueba2 = roverto.prueba2:main',
+             'og_prueba2 = roverto.og_prueba2:main',
+             'prueba3 = roverto.prueba3:main',
+             'prueba4 = roverto.prueba4:main'
      ],
    },
 )

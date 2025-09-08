@@ -18,26 +18,26 @@ def generate_launch_description():
             ]),
         ),
         Node(
-            package='asrob-roverto',
-            namespace='asrob-roverto',
+            package='roverto',
+            namespace='roverto',
             executable='number',
             name='number_detection'
         ),
         Node(
-            package='asrob-roverto',
-            namespace='asrob-roverto',
+            package='roverto',
+            namespace='roverto',
             executable='box_color',
             name='box_color_detection'
         ),
         Node(
-            package='asrob-roverto',
-            namespace='asrob-roverto',
+            package='roverto',
+            namespace='roverto',
             executable='aruco',
             name='aruco_detection'
         ),
         Node(
-            package='asrob-roverto',
-            namespace='asrob-roverto',
+            package='roverto',
+            namespace='roverto',
             executable='prueba4',
             name='prueba4',
             output='prueba4'

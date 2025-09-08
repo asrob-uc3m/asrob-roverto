@@ -18,8 +18,8 @@ def generate_launch_description():
             ]),
         ),
         Node(
-            package='asrob-roverto',
-            namespace='asrob-roverto',
+            package='roverto',
+            namespace='roverto',
             executable='lidar',
             name='lidar_detection'
         )

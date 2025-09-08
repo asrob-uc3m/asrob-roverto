@@ -9,14 +9,14 @@ from launch.substitutions import PathJoinSubstitution, TextSubstitution
 def generate_launch_description():
     return LaunchDescription([
         Node(
-            package='asrob-roverto',
-            namespace='asrob-roverto',
+            package='roverto',
+            namespace='roverto',
             executable='aruco',
             name='aruco_detection'
         ),
         Node(
-            package='asrob-roverto',
-            namespace='asrob-roverto',
+            package='roverto',
+            namespace='roverto',
             executable='prueba3',
             name='prueba3'
         )
