@@ -1,20 +1,17 @@
-#!/usr/bin/python3
-
 import rclpy
-import numpy as np
 from rclpy.node import Node
-from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
+from sensor_msgs.msg import LaserScan
 from rclpy.qos import qos_profile_sensor_data
-from simple_pid import PID
-from adafruit_servokit import ServoKit
-from time import sleep
+import simple_pid
+import math
+import numpy as np
 
 
-class LidarDetector(Node):
+class pid_controller_node(Node):   ##Node for Laser Scan subscription
     def __init__(self):
-        super().__init__('lidar_node')
-
+        super().__init__('pid_controller_node')
+        
         # Subscriber
         self.subscription = self.create_subscription(LaserScan, 
                                                      '/scan',
@@ -23,31 +20,25 @@ class LidarDetector(Node):
         self.subscription
         self.get_logger().info('LidarDetector subscriber is UP')
 
-        # Publisher
-        # The Intuitive mode means that sending a positive angular velocity will always make the corner wheels turn regardless of the linear velocity.
-        self.publisher_ = self.create_publisher(Twist, '/cmd_vel_intuitive', 1)
+        # Twist publisher
+        self.publisher_ = self.create_publisher(Twist, '/cmd_vel_intuitive', 10)
         self.get_logger().info('LidarDetector publisher is UP')
-
-        # PIDs
-        self.pid_linear = PID(-0.25, -0.0, -0.2, setpoint=0.1)
-        self.pid_linear.sample_time = 0.01
-        self.pid_angular = PID(10, 0.5, 0.005, setpoint=0.0)
-        self.pid_angular.sample_time = 0.01
-
-        # servos
-        self.motor_index = [15, 14, 13, 12]
-        self.straight_angle = [90, 90, 95, 35]
-        self.right_angle = [110, 60, 70, 60]
-        self.left_angle = [60, 110, 115, 10]
-
-        # set straight
-        self.kit = ServoKit(channels=16)
-        sleep(0.1)
-        for index, angle in zip(self.motor_index, self.straight_angle):
-            self.kit.servo[index].actuation_range = 300
-            self.kit.servo[index].set_pulse_width_range(500, 2500)
-            self.kit.servo[index].angle = angle
         
+        # Input variables for the PID controllers.        
+        self.d_front = None
+        self.d_sides = None
+        
+        self.angle_wings = math.radians(10) 
+        self.d_safety=0.3
+        
+        # PID Controllers        
+        self.pid_linear = simple_pid.PID(-0.25, -0.0, -0.2, setpoint=self.d_safety) 
+        self.pid_angular = simple_pid.PID(-0.43, -0.0, -0.458, setpoint=0.0)
+        
+        # Timer to update the twist msgs.
+        self.timer = self.create_timer(0.025, self.update_and_publish)
+
+
     def lidar_callback(self, msg):
         # get distances
         ranges = len(msg.ranges)
@@ -75,45 +66,37 @@ class LidarDetector(Node):
 
         turn_left = left + mid_right
         turn_right = mid_left + right
+        d_left = min(turn_left, 2.5)
+        d_right = min(turn_right, 2.5)
+        d_front_0 = mid
 
-        self.get_logger().info(f'left {turn_left.round(2)}, mid {mid.round(2)}, right {turn_right.round(2)}')
-
-        # turn servos
-        if turn_left > 3 and mid < 1.3 and self.kit.servo[0].angle != self.left_angle[0]:
-            for index, angle in zip(self.motor_index, self.left_angle):
-                self.kit.servo[index].angle = angle
-            
-        elif turn_right > 3 and mid < 1.3 and self.kit.servo[0].angle != self.right_angle[0]:
-            for index, angle in zip(self.motor_index, self.right_angle):
-                self.kit.servo[index].angle = angle
-
-        elif self.kit.servo[0].angle != self.straight_angle[0]:
-            for index, angle in zip(self.motor_index, self.straight_angle):
-                self.kit.servo[index].angle = angle
-
-        # publish pid outputs
-        pid_output_1 = self.pid_linear(mid)
-        pid_output_2 = self.pid_angular(left-right)
+        self.get_logger().info(f'left {d_left}, mid {d_front_0}, right {d_right}')
         
-        twist_msg = Twist()
-        twist_msg.linear.x = pid_output_1
-        if pid_output_1 < 0.2:
-            # rotate in place
-            twist_msg.angular.y = pid_output_2
-        else:
+        # Update class variables
+        self.d_front = min(d_front_0, 2.5)
+        self.d_sides = d_left - d_right
+
+
+    def update_and_publish(self):
+        if self.d_front is not None and self.d_sides is not None:
+            # Compute the PID outputs.
+            pid_output_1 = self.pid_linear(self.d_front)
+            pid_output_2 = self.pid_angular(self.d_sides)
+            
+            # Generate and publish new twist command.
+            twist_msg = Twist()
+            twist_msg.linear.x = pid_output_1
             twist_msg.angular.z = pid_output_2
-        # self.get_logger().info(f'linear {pid_output_1}, angular {pid_output_2}')
-        self.publisher_.publish(twist_msg)
+            self.publisher_.publish(twist_msg)
 
 
-def main():
-    rclpy.init()
-    lidar_detector = LidarDetector()
-    rclpy.spin(lidar_detector)
-
-    lidar_detector.destroy_node()
+def main(args=None):
+    rclpy.init(args=args)
+    node = pid_controller_node()
+    rclpy.spin(node)
+    node.destroy_node()
     rclpy.shutdown()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
