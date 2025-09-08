@@ -11,29 +11,16 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource([
                 PathJoinSubstitution([
-                    FindPackageShare('orbbec_camera'),
+                    FindPackageShare('ydlidar_ros2_driver'),
                     'launch',
-                    'astra_pro_plus.launch.py'
+                    'ydlidar_launch.py'
                 ])
             ]),
         ),
         Node(
-            package='perception',
-            namespace='perception',
-            executable='number',
-            name='number_detection'
-        ),
-        Node(
-            package='perception',
-            namespace='perception',
-            executable='box_color',
-            name='box_color_detection'
-        ),
-        Node(
-            package='perception',
-            namespace='perception',
-            executable='prueba1',
-            name='perception_spin',
-            output='screen'
+            package='asrob-roverto',
+            namespace='asrob-roverto',
+            executable='lidar',
+            name='lidar_detection'
         )
     ])

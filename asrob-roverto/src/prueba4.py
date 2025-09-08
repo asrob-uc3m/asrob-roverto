@@ -28,11 +28,11 @@ class SpaceMission(Node):
                                                      self.aruco_callback,
                                                      qos_profile=qos_profile_sensor_data)
         self.subscription3 = self.create_subscription(String,
-                                                     '/perception/number_topic',
+                                                     '/asrob-roverto/number_topic',
                                                      self.number_callback, 
                                                      1)
         self.subscription4 = self.create_subscription(String,
-                                                     '/perception/box_color_topic',
+                                                     '/asrob-roverto/box_color_topic',
                                                      self.color_callback, 
                                                      1)
 

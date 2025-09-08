@@ -17,10 +17,19 @@ def generate_launch_description():
                 ])
             ]),
         ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([
+                PathJoinSubstitution([
+                    FindPackageShare('osr_bringup'),
+                    'launch',
+                    'osr_launch.py'
+                ])
+            ]),
+        ),
         Node(
-            package='perception',
-            namespace='perception',
-            executable='lidar',
-            name='lidar_detection'
+            package='asrob-roverto',
+            namespace='asrob-roverto',
+            executable='prueba2',
+            name='prueba2'
         )
     ])

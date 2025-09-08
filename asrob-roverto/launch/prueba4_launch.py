@@ -18,26 +18,26 @@ def generate_launch_description():
             ]),
         ),
         Node(
-            package='perception',
-            namespace='perception',
+            package='asrob-roverto',
+            namespace='asrob-roverto',
             executable='number',
             name='number_detection'
         ),
         Node(
-            package='perception',
-            namespace='perception',
+            package='asrob-roverto',
+            namespace='asrob-roverto',
             executable='box_color',
             name='box_color_detection'
         ),
         Node(
-            package='perception',
-            namespace='perception',
+            package='asrob-roverto',
+            namespace='asrob-roverto',
             executable='aruco',
             name='aruco_detection'
         ),
         Node(
-            package='perception',
-            namespace='perception',
+            package='asrob-roverto',
+            namespace='asrob-roverto',
             executable='prueba4',
             name='prueba4',
             output='prueba4'

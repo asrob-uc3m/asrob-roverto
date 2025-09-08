@@ -2,7 +2,7 @@ import os
 from glob import glob
 from setuptools import setup
 
-package_name = 'perception'
+package_name = 'asrob-roverto'
 
 setup(
  name=package_name,
@@ -18,20 +18,20 @@ setup(
  zip_safe=True,
  maintainer='anacg',
  maintainer_email='anacg1620@gmail.com',
- description='ROVERTO perception package',
+ description='ROVERTO package',
  license='TODO: License declaration',
  tests_require=['pytest'],
  entry_points={
      'console_scripts': [
-             'box_color = perception.box_color_detection:main',
-             'aruco = perception.aruco_detection:main',
-             'number = perception.number_detection:main',
-             'lidar = perception.lidar_detection:main',
-             'prueba1 = perception.prueba1:main',
-             'prueba2 = perception.prueba2:main',
-             'og_prueba2 = perception.og_prueba2:main',
-             'prueba3 = perception.prueba3:main',
-             'prueba4 = perception.prueba4:main'
+             'box_color = asrob-roverto.box_color_detection:main',
+             'aruco = asrob-roverto.aruco_detection:main',
+             'number = asrob-roverto.number_detection:main',
+             'lidar = asrob-roverto.lidar_detection:main',
+             'prueba1 = asrob-roverto.prueba1:main',
+             'prueba2 = asrob-roverto.prueba2:main',
+             'og_prueba2 = asrob-roverto.og_prueba2:main',
+             'prueba3 = asrob-roverto.prueba3:main',
+             'prueba4 = asrob-roverto.prueba4:main'
      ],
    },
 )
